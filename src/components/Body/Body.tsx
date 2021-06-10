@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Alert } from 'react-native'
+import React, { useEffect, useState } from 'react';
 import CheckBox from '@react-native-community/checkbox';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     Container,
     Button,
@@ -11,12 +11,15 @@ import {
     ItemCheck,
     Todo
 } from './styles';
-import { setStatusBarNetworkActivityIndicatorVisible } from 'expo-status-bar';
+
+interface Todo {
+    todo: [string];
+}
 
 export function Body() {
     const [toggleCheckbox, setToggleCheckbox] = useState(false);
     const [item, setItem] = useState(false);
-    const [inputValue, setInputValue] = useState({});
+    const [inputValue, setInputValue] = useState('');
     const [todo, setTodo] = useState([]);
 
     const handleCheckBox = (value: boolean) => {
@@ -24,33 +27,63 @@ export function Body() {
         setItem(true);
     }
 
-    const handleInput = (event: any) => {
-        setInputValue(event.target.value);
+    const handleInput = (value: string) => {
+        setInputValue(value);
+    }
+
+    const storeData = async (value: any) => {
+        setInputValue("");
+
+        try {
+            const array: Array<Object> = [];
+
+            array.push(['@key', value]);
+
+            await AsyncStorage.multiSet(array);
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const getData = async () => {
+        try {
+            const value = await AsyncStorage.multiGet(['@key'])
+            if (value !== null) {
+                setTodo(value);
+            }
+            console.log(todo);
+        } catch (e) {
+            // error reading value
+            console.log(e)
+        }
     }
 
     const handleTodo = () => {
-        const array = [];
+        /*    const array: Array<string> = [];
+   
+           array.push(inputValue); */
 
-        array.push(inputValue);
-
-        setTodo(array);
-
+        storeData(inputValue);
     }
+
+    useEffect(() => {
+        getData();
+    }, [todo]);
+
 
 
     return (
         <Container>
             <Wrapper>
-                <Input placeholder={"Type a thing to do"} onChange={handleInput} />
+                <Input placeholder={"Type a thing to do"} value={inputValue} onChangeText={handleInput} />
                 <Button
-                    onPress={() => handleTodo}
+                    onPress={handleTodo}
                 >
                     <Text>Add</Text>
                 </Button>
             </Wrapper>
 
             <Content>
-
                 {todo.map(item => {
                     <Todo>
 
@@ -63,7 +96,7 @@ export function Body() {
                         <ItemCheck
                             check={toggleCheckbox === true ? true : false}
                         >
-                            {item}
+                            {item || "No one to do..."}
                         </ItemCheck>
                     </Todo>
                 })}
