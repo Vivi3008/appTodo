@@ -9,7 +9,6 @@ export default function App() {
   return (
     <Container>
       <StatusBar style="auto" />
-      <Header />
       <Body />
     </Container>
   );

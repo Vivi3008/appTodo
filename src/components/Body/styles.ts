@@ -2,9 +2,14 @@ import styled, { css } from 'styled-components/native'
 import { TouchableOpacityProps } from 'react-native';
 
 interface ItemProps {
+    id: number;
+    itemTodo?: number;
     check?: boolean;
 }
 
+interface ButtonProps extends TouchableOpacityProps {
+    check?: boolean;
+}
 
 export const Container = styled.View`
     flex:1;
@@ -21,26 +26,38 @@ export const Input = styled.TextInput`
     height: 100%;
     width: 200px;
     padding: 8px;
-    border: 1px solid #28191A;
+    background-color: white;
+    border: 1px solid #28191A; 
     border-radius: 8px;
 `
 
-export const Button = styled.TouchableOpacity.attrs<TouchableOpacityProps>({
-    activeOpacity: 0.7,
-})`
+export const AddButton = styled.TouchableOpacity`
     align-items: center;
     justify-content: center;
     height: 100%;
     width: 70px;
     padding: 5px;
     background-color: #65454F;
-    border: 1px solid black;
     border-radius: 8px;
+`
+
+export const CheckButton = styled.TouchableOpacity<ButtonProps>`
+    align-items: center;
+    justify-content: center;
+    height: 25px;
+    width: 25px;
+    border-radius: 4px;
+    background-color: #fff;
+    border: 1px solid #2F855A;
+    ${({ check }) => check && css`
+        background-color:#48BB78`
+    };
 `
 
 export const Wrapper = styled.View`
     width: 300px;
     height: 40px;
+    margin-top: 80px;
     flex-direction: row;
     justify-content: space-around;
 `
@@ -55,24 +72,24 @@ export const Content = styled.View`
     width: 100%;
 `;
 
-export const CheckButton = styled.TouchableOpacity`
-    width: auto;
-    align-items: center;
-    justify-content: center;
-    background-color: #C7AD9A;
-    padding: 8px;
+export const Todo = styled.View`
+    flex: 1;
+    margin: 0px 20px;
+    width: 100%;
+    height: 50px;
 `;
 
-export const Todo = styled.View`
+export const ItemTodo = styled.View`
     flex-direction: row;
-    width: 100%;
-    height: 30px;
+    margin: 10px 10px;
 `;
 
 export const ItemCheck = styled.Text<ItemProps>`
     font-size: 18px;
+    margin: 0px 20px 0px 10px;
     color: #28191A;
+    text-transform: uppercase;
     ${({ check }) => check && css`
-    text-decoration : line-through`
+     text-decoration : line-through`
     };
 `

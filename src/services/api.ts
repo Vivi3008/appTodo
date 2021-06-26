@@ -1,8 +1,8 @@
 
-import axios from 'axios'
+import axios from 'axios';
 
 const api = axios.create({
-    baseURL: "http://localhost:3300"
-})
+    baseURL: "https://apisupabase.herokuapp.com/"
+});
 
-export default api
+export default api;

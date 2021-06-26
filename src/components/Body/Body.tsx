@@ -1,105 +1,121 @@
 import React, { useEffect, useState } from 'react';
-import CheckBox from '@react-native-community/checkbox';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FlatList, Alert, TouchableOpacity } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import {
     Container,
-    Button,
+    AddButton,
     Input,
     Wrapper,
+    CheckButton,
     Text,
     Content,
     ItemCheck,
+    ItemTodo,
     Todo
 } from './styles';
-
+import api from '../../services/api';
 interface Todo {
-    todo: [string];
+    id: number,
+    task: string,
+    status: boolean,
 }
 
 export function Body() {
-    const [toggleCheckbox, setToggleCheckbox] = useState(false);
-    const [item, setItem] = useState(false);
     const [inputValue, setInputValue] = useState('');
-    const [todo, setTodo] = useState([]);
+    const [todo, setTodo] = useState<Todo[]>([]);
 
-    const handleCheckBox = (value: boolean) => {
-        setToggleCheckbox(value);
-        setItem(true);
+    const handleCheckBox = async (id: number, statusParam: boolean) => {
+        const status = !statusParam ? { status: true } : { status: false };
+
+        await api.put(`update/${id}`, status)
+    }
+
+    const handleDeleteItem = async (id: number) => {
+        await api.delete(`delete/${id}`).then(res => {
+            res.status === 200 ? Alert.alert('Deletado com sucesso!') :
+                Alert.alert('Erro ao deletar!')
+        })
     }
 
     const handleInput = (value: string) => {
-        setInputValue(value);
+        const valueString = value.toString();
+        setInputValue(valueString);
     }
 
-    const storeData = async (value: any) => {
-        setInputValue("");
+    async function fetchData() {
+        const { data } = await api.get('/');
 
-        try {
-            const array: Array<Object> = [];
+        const todoArray: any = [];
 
-            array.push(['@key', value]);
-
-            await AsyncStorage.multiSet(array);
-        } catch (e) {
-            console.log(e)
-        }
-    }
-
-    const getData = async () => {
-        try {
-            const value = await AsyncStorage.multiGet(['@key'])
-            if (value !== null) {
-                setTodo(value);
-            }
-            console.log(todo);
-        } catch (e) {
-            // error reading value
-            console.log(e)
-        }
-    }
-
-    const handleTodo = () => {
-        /*    const array: Array<string> = [];
-   
-           array.push(inputValue); */
-
-        storeData(inputValue);
+        data.forEach(item => {
+            todoArray.push({
+                id: item.id,
+                task: item.task,
+                status: item.status,
+            })
+        })
+        setTodo(todoArray);
     }
 
     useEffect(() => {
-        getData();
+        fetchData();
     }, [todo]);
 
-
+    const handleTodo = async () => {
+        const todo = { todo: inputValue }
+        await api.post('insert', todo).then(res => {
+            res.status === 200 ? Alert.alert('Task added sucessfull!') :
+                Alert.alert('Error to added task!')
+        })
+    }
 
     return (
         <Container>
             <Wrapper>
-                <Input placeholder={"Type a thing to do"} value={inputValue} onChangeText={handleInput} />
-                <Button
+                <Input placeholder={"Type a thing to do"}
+                    value={inputValue}
+                    onChangeText={handleInput}
+                />
+                <AddButton
                     onPress={handleTodo}
                 >
                     <Text>Add</Text>
-                </Button>
+                </AddButton>
             </Wrapper>
 
             <Content>
-                {todo.map(item => {
-                    <Todo>
+                <Todo>
+                    <FlatList
+                        data={todo}
+                        keyExtractor={(item) => String(item.id)}
+                        showsVerticalScrollIndicator={true}
+                        renderItem={({ item }) => (
+                            <ItemTodo>
+                                <CheckButton
+                                    onPress={() => handleCheckBox(item.id, item.status)}
+                                    check={item.status}
+                                >
+                                    {item.status && (
+                                        <AntDesign name="check" size={24} color="black" />
+                                    )}
 
-                        <CheckBox
-                            disabled={false}
-                            value={toggleCheckbox}
-                            onValueChange={value => handleCheckBox(value)}
-                        />
+                                </CheckButton>
+                                <ItemCheck
+                                    id={item.id}
+                                    check={item.status}
+                                >
+                                    {item.task}
+                                </ItemCheck>
+                                <TouchableOpacity
+                                    onPress={() => handleDeleteItem(item.id)}
+                                >
+                                    <AntDesign name="delete" size={20} color="black" />
+                                </TouchableOpacity>
+                            </ItemTodo>
+                        )}
+                    />
+                </Todo>
 
-                        <ItemCheck
-                            check={toggleCheckbox === true ? true : false}
-                        >
-                            {item || "No one to do..."}
-                        </ItemCheck>
-                    </Todo>
-                })}
 
             </Content>
         </Container>
