@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Alert, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import Loader from '../Loader/Loader';
 import {
     Container,
     AddButton,
@@ -23,11 +24,13 @@ interface Todo {
 export function Body() {
     const [inputValue, setInputValue] = useState('');
     const [todo, setTodo] = useState<Todo[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const handleCheckBox = async (id: number, statusParam: boolean) => {
         const status = !statusParam ? { status: true } : { status: false };
 
         await api.put(`update/${id}`, status)
+        setLoading(false);
     }
 
     const handleDeleteItem = async (id: number) => {
@@ -35,6 +38,7 @@ export function Body() {
             res.status === 200 ? Alert.alert('Deletado com sucesso!') :
                 Alert.alert('Erro ao deletar!')
         })
+        setLoading(false);
     }
 
     const handleInput = (value: string) => {
@@ -54,7 +58,13 @@ export function Body() {
                 status: item.status,
             })
         })
+
+        todoArray.sort((a: any, b: any) => {
+            return (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0)
+        })
+
         setTodo(todoArray);
+        setLoading(false);
     }
 
     useEffect(() => {
@@ -83,41 +93,44 @@ export function Body() {
                 </AddButton>
             </Wrapper>
 
-            <Content>
-                <Todo>
-                    <FlatList
-                        data={todo}
-                        keyExtractor={(item) => String(item.id)}
-                        showsVerticalScrollIndicator={true}
-                        renderItem={({ item }) => (
-                            <ItemTodo>
-                                <CheckButton
-                                    onPress={() => handleCheckBox(item.id, item.status)}
-                                    check={item.status}
-                                >
-                                    {item.status && (
-                                        <AntDesign name="check" size={24} color="black" />
-                                    )}
+            {loading ? <Loader /> : (
+                <Content>
+                    <Todo>
+                        <FlatList
+                            data={todo}
+                            keyExtractor={(item) => String(item.id)}
+                            showsVerticalScrollIndicator={true}
+                            renderItem={({ item }) => (
+                                <ItemTodo>
+                                    <CheckButton
+                                        onPress={() => handleCheckBox(item.id, item.status)}
+                                        check={item.status}
+                                    >
+                                        {item.status && (
+                                            <AntDesign name="check" size={24} color="black" />
+                                        )}
 
-                                </CheckButton>
-                                <ItemCheck
-                                    id={item.id}
-                                    check={item.status}
-                                >
-                                    {item.task}
-                                </ItemCheck>
-                                <TouchableOpacity
-                                    onPress={() => handleDeleteItem(item.id)}
-                                >
-                                    <AntDesign name="delete" size={20} color="black" />
-                                </TouchableOpacity>
-                            </ItemTodo>
-                        )}
-                    />
-                </Todo>
+                                    </CheckButton>
+                                    <ItemCheck
+                                        id={item.id}
+                                        check={item.status}
+                                    >
+                                        {item.task}
+                                    </ItemCheck>
+                                    <TouchableOpacity
+                                        onPress={() => handleDeleteItem(item.id)}
+                                    >
+                                        <AntDesign name="delete" size={20} color="black" />
+                                    </TouchableOpacity>
+                                </ItemTodo>
+                            )}
+                        />
+                    </Todo>
 
 
-            </Content>
+                </Content>
+            )}
+
         </Container>
     )
 }

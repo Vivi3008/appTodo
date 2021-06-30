@@ -86,7 +86,7 @@ export const ItemTodo = styled.View`
 
 export const ItemCheck = styled.Text<ItemProps>`
     font-size: 18px;
-    margin: 0px 20px 0px 10px;
+    margin: 0px 10px 0px 10px;
     color: #28191A;
     text-transform: uppercase;
     ${({ check }) => check && css`
