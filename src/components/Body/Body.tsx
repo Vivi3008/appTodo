@@ -59,10 +59,6 @@ export function Body() {
             })
         })
 
-        todoArray.sort((a: any, b: any) => {
-            return (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0)
-        })
-
         setTodo(todoArray);
         setLoading(false);
     }
